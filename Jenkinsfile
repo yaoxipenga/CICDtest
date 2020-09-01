@@ -1,22 +1,21 @@
-pipeline {
-   agent any
-
-   stages {
-      stage('Build') {
-        steps {
-          echo 'Building...'
-          echo "Running ${env.BUILD_ID} ${env.BUILD_DISPLAY_NAME} on ${env.NODE_NAME} and JOB ${env.JOB_NAME}"
-        }
+node {
+   stage('Clone Code') { // for display purposes
+      // Get some code from a GitHub repository
+      git 'https://github.com/trautonen/coveralls-maven-plugin.git/'
    }
-   stage('Test') {
-     steps {
-        echo 'Testing...'
-     }
+   stage('Code Analysis') {
+       sh "mvn clean"
+       sh "infer -- mvn compile"
+   }
+   stage('Testing') {
+       sh "mvn test"
+       junit 'target/surefire-reports/TEST-*.xml'
+   }
+   stage('Package') {
+       sh "'mvn' -Dmaven.test.skip=true package"
+       archive 'target/*.jar'
    }
    stage('Deploy') {
-     steps {
-       echo 'Deploying...'
-     }
+       echo 'pipeline success'
    }
-  }
 }
